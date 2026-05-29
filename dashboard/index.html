@@ -1,0 +1,1309 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard LPs — MS Contabilidade</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --dark:       #0f172a;
+      --dark-2:     #1e293b;
+      --dark-3:     #273548;
+      --blue:       #3b82f6;
+      --blue-dark:  #1d4ed8;
+      --cyan:       #06b6d4;
+      --green:      #10b981;
+      --green-d:    #059669;
+      --yellow:     #f59e0b;
+      --red:        #ef4444;
+      --purple:     #8b5cf6;
+      --white:      #ffffff;
+      --gray:       #94a3b8;
+      --gray-light: #e2e8f0;
+      --text:       #f1f5f9;
+      --text-dim:   #94a3b8;
+      --card:       #1e293b;
+      --border:     #2d3f55;
+    }
+    html { scroll-behavior: smooth; }
+    body { font-family: 'Segoe UI', Arial, sans-serif; background: var(--dark); color: var(--text); min-height: 100vh; }
+    a { text-decoration: none; color: inherit; }
+    button { font-family: inherit; }
+
+    /* ── LOGIN ── */
+    #login-screen {
+      position: fixed; inset: 0; z-index: 9999;
+      background: var(--dark);
+      display: flex; align-items: center; justify-content: center;
+      padding: 24px;
+    }
+    #login-screen.hidden { display: none; }
+    .login-box {
+      background: var(--dark-2);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 40px 36px;
+      width: 100%; max-width: 380px;
+      text-align: center;
+    }
+    .login-logo { font-size: 1.3rem; font-weight: 900; color: var(--white); margin-bottom: 6px; }
+    .login-logo span { color: var(--blue); }
+    .login-sub { font-size: 0.82rem; color: var(--text-dim); margin-bottom: 28px; }
+    .login-label { display: block; font-size: 0.72rem; font-weight: 700; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.08em; text-align: left; margin-bottom: 6px; }
+    .login-input {
+      width: 100%; background: var(--dark);
+      border: 1px solid var(--border); border-radius: 9px;
+      padding: 13px 16px; font-size: 0.97rem;
+      color: var(--white); font-family: inherit;
+      outline: none; margin-bottom: 16px;
+      transition: border-color 0.2s; text-align: center;
+      letter-spacing: 0.05em;
+    }
+    .login-input:focus { border-color: var(--blue); }
+    .login-btn {
+      width: 100%; padding: 13px;
+      background: var(--blue); color: white;
+      border: none; border-radius: 9px;
+      font-size: 1rem; font-weight: 800;
+      cursor: pointer; transition: background 0.2s;
+      margin-bottom: 12px;
+    }
+    .login-btn:hover { background: var(--blue-dark); }
+    .login-error { font-size: 0.82rem; color: var(--red); margin-top: 4px; min-height: 20px; }
+
+    /* ── LAYOUT ── */
+    .layout { display: flex; min-height: 100vh; }
+
+    /* ── SIDEBAR ── */
+    .sidebar {
+      width: 230px; background: var(--dark-2);
+      border-right: 1px solid var(--border);
+      padding: 24px 0; position: fixed;
+      top: 0; left: 0; bottom: 0;
+      display: flex; flex-direction: column;
+      z-index: 50; overflow-y: auto;
+    }
+    .sidebar-logo { padding: 0 20px 24px; border-bottom: 1px solid var(--border); margin-bottom: 16px; }
+    .sidebar-logo h1 { font-size: 1.1rem; font-weight: 900; color: var(--white); }
+    .sidebar-logo h1 span { color: var(--blue); }
+    .sidebar-logo p { font-size: 0.72rem; color: var(--text-dim); margin-top: 3px; }
+
+    .nav-group { padding: 0 10px; margin-bottom: 6px; }
+    .nav-label { font-size: 0.62rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--text-dim); padding: 0 10px; margin-bottom: 4px; display: block; }
+    .nav-item {
+      display: flex; align-items: center; gap: 9px;
+      padding: 9px 10px; border-radius: 7px;
+      font-size: 0.85rem; font-weight: 600; color: var(--text-dim);
+      cursor: pointer; transition: all 0.2s;
+      text-decoration: none; border: none; background: none; width: 100%; text-align: left;
+    }
+    .nav-item:hover, .nav-item.active { background: rgba(59,130,246,0.12); color: var(--white); }
+    .nav-item.active { color: var(--blue); }
+    .nav-icon { font-size: 0.95rem; width: 18px; text-align: center; }
+
+    .sidebar-footer { margin-top: auto; padding: 16px 20px 0; border-top: 1px solid var(--border); }
+    .ga-badge { display: flex; align-items: center; gap: 6px; font-size: 0.72rem; color: var(--green); font-weight: 700; margin-top: 8px; }
+    .ga-dot { width: 6px; height: 6px; background: var(--green); border-radius: 50%; animation: blink 2s infinite; }
+    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
+
+    /* ── MAIN ── */
+    .main { margin-left: 230px; flex: 1; padding: 28px; }
+
+    /* ── TOPBAR ── */
+    .topbar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 28px; flex-wrap: wrap; gap: 14px; }
+    .topbar-left h2 { font-size: 1.35rem; font-weight: 900; color: var(--white); }
+    .topbar-left p  { font-size: 0.82rem; color: var(--text-dim); margin-top: 2px; }
+    .topbar-right { display: flex; gap: 10px; flex-wrap: wrap; }
+
+    .btn { display: inline-flex; align-items: center; gap: 7px; padding: 9px 18px; border-radius: 8px; font-size: 0.85rem; font-weight: 700; cursor: pointer; border: none; transition: all 0.2s; }
+    .btn-blue  { background: var(--blue); color: white; }
+    .btn-blue:hover  { background: var(--blue-dark); transform: translateY(-1px); }
+    .btn-ghost { background: rgba(255,255,255,0.06); border: 1px solid var(--border); color: var(--text-dim); }
+    .btn-ghost:hover { background: rgba(255,255,255,0.1); color: var(--white); }
+    .btn-green { background: var(--green); color: white; }
+    .btn-green:hover { background: var(--green-d); }
+
+    /* ── TABS ── */
+    .tabs { display: flex; gap: 4px; background: var(--dark-2); border: 1px solid var(--border); border-radius: 10px; padding: 4px; margin-bottom: 24px; overflow-x: auto; }
+    .tab { padding: 8px 18px; border-radius: 7px; font-size: 0.85rem; font-weight: 700; cursor: pointer; border: none; background: none; color: var(--text-dim); transition: all 0.2s; white-space: nowrap; }
+    .tab.active { background: var(--blue); color: white; }
+    .tab:not(.active):hover { background: rgba(255,255,255,0.06); color: var(--white); }
+
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+
+    /* ── SUMMARY CARDS ── */
+    .summary-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(175px, 1fr)); gap: 16px; margin-bottom: 24px; }
+    .s-card { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 20px; position: relative; overflow: hidden; }
+    .s-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; }
+    .s-card.c-blue::before   { background: var(--blue); }
+    .s-card.c-green::before  { background: var(--green); }
+    .s-card.c-yellow::before { background: var(--yellow); }
+    .s-card.c-purple::before { background: var(--purple); }
+    .s-card.c-cyan::before   { background: var(--cyan); }
+    .s-icon { font-size: 1.3rem; margin-bottom: 10px; }
+    .s-value { font-size: 1.9rem; font-weight: 900; color: var(--white); line-height: 1; }
+    .s-label { font-size: 0.75rem; color: var(--text-dim); font-weight: 600; margin-top: 4px; }
+    .s-sub   { font-size: 0.72rem; margin-top: 5px; font-weight: 600; }
+
+    /* ── LP CARDS ── */
+    .section-hdr { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+    .section-hdr h3 { font-size: 0.97rem; font-weight: 800; color: var(--white); }
+    .section-hdr span { font-size: 0.78rem; color: var(--text-dim); }
+
+    .lp-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(310px, 1fr)); gap: 18px; }
+    .lp-card { background: var(--card); border: 1px solid var(--border); border-radius: 16px; overflow: hidden; transition: border-color 0.2s, transform 0.2s; }
+    .lp-card:hover { border-color: var(--blue); transform: translateY(-2px); }
+
+    .lp-hdr { padding: 18px 20px 14px; border-bottom: 1px solid var(--border); display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; }
+    .lp-hdr-left { display: flex; gap: 12px; align-items: flex-start; }
+    .lp-ico { width: 42px; height: 42px; border-radius: 11px; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; flex-shrink: 0; }
+    .ico-teal   { background: rgba(26,58,74,0.9); }
+    .ico-red    { background: rgba(192,57,43,0.2); }
+    .ico-green  { background: rgba(16,185,129,0.15); }
+    .ico-blue   { background: rgba(59,130,246,0.12); }
+    .lp-title   { font-size: 0.93rem; font-weight: 800; color: var(--white); margin-bottom: 3px; }
+    .lp-desc    { font-size: 0.75rem; color: var(--text-dim); line-height: 1.4; }
+
+    .badge { display: inline-flex; align-items: center; gap: 4px; font-size: 0.68rem; font-weight: 700; padding: 3px 9px; border-radius: 100px; flex-shrink: 0; }
+    .badge-dot { width: 5px; height: 5px; border-radius: 50%; }
+    .badge.online  { background: rgba(16,185,129,0.15); color: var(--green); }
+    .badge.online  .badge-dot { background: var(--green); animation: blink 2s infinite; }
+    .badge.dev     { background: rgba(245,158,11,0.15); color: var(--yellow); }
+    .badge.dev     .badge-dot { background: var(--yellow); }
+    .badge.pausado { background: rgba(148,163,184,0.12); color: var(--gray); }
+
+    .lp-body { padding: 16px 20px; }
+
+    /* progress bar */
+    .lp-goal { margin-bottom: 14px; }
+    .lp-goal-hdr { display: flex; justify-content: space-between; font-size: 0.72rem; color: var(--text-dim); margin-bottom: 5px; }
+    .lp-goal-hdr span:last-child { color: var(--white); font-weight: 700; }
+    .progress-bar { height: 5px; background: rgba(255,255,255,0.08); border-radius: 10px; overflow: hidden; }
+    .progress-fill { height: 100%; border-radius: 10px; transition: width 1s ease; }
+    .fill-green  { background: linear-gradient(90deg, var(--green), var(--cyan)); }
+    .fill-yellow { background: linear-gradient(90deg, var(--yellow), #fb923c); }
+    .fill-blue   { background: linear-gradient(90deg, var(--blue), var(--purple)); }
+
+    .lp-metrics { display: grid; grid-template-columns: repeat(3,1fr); gap: 10px; margin-bottom: 14px; }
+    .metric { text-align: center; background: rgba(255,255,255,0.03); border-radius: 8px; padding: 8px 4px; }
+    .m-val  { font-size: 1.1rem; font-weight: 800; color: var(--white); display: block; line-height: 1; }
+    .m-lbl  { font-size: 0.65rem; color: var(--text-dim); margin-top: 3px; display: block; }
+
+    .lp-tags { display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 14px; }
+    .tag { font-size: 0.65rem; font-weight: 700; padding: 2px 8px; border-radius: 100px; }
+    .t-blue   { background: rgba(59,130,246,0.15);  color: #93c5fd; }
+    .t-green  { background: rgba(16,185,129,0.15);  color: #6ee7b7; }
+    .t-yellow { background: rgba(245,158,11,0.15);  color: #fcd34d; }
+    .t-red    { background: rgba(239,68,68,0.15);   color: #fca5a5; }
+    .t-purple { background: rgba(139,92,246,0.15);  color: #c4b5fd; }
+    .t-cyan   { background: rgba(6,182,212,0.15);   color: #67e8f9; }
+
+    .lp-actions { display: flex; gap: 7px; }
+    .lp-btn { flex: 1; padding: 7px 0; border-radius: 7px; font-size: 0.75rem; font-weight: 700; cursor: pointer; border: 1px solid var(--border); background: transparent; color: var(--text-dim); transition: all 0.2s; text-align: center; display: flex; align-items: center; justify-content: center; gap: 4px; }
+    .lp-btn:hover { background: rgba(255,255,255,0.06); color: var(--white); }
+    .lp-btn.primary { background: var(--blue); border-color: var(--blue); color: white; }
+    .lp-btn.primary:hover { background: var(--blue-dark); }
+
+    /* ── METAS ── */
+    .metas-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 16px; margin-bottom: 24px; }
+    .meta-card { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 22px; }
+    .meta-card-hdr { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px; }
+    .meta-card-hdr h4 { font-size: 0.93rem; font-weight: 800; color: var(--white); }
+    .meta-card-hdr span { font-size: 0.72rem; color: var(--text-dim); }
+    .meta-item { margin-bottom: 14px; }
+    .meta-item:last-child { margin-bottom: 0; }
+    .meta-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px; }
+    .meta-name  { font-size: 0.82rem; color: var(--text); }
+    .meta-vals  { font-size: 0.78rem; color: var(--text-dim); }
+    .meta-vals strong { color: var(--white); }
+
+    .meta-edit-btn { background: none; border: 1px dashed var(--border); color: var(--text-dim); border-radius: 8px; padding: 10px; width: 100%; font-size: 0.8rem; cursor: pointer; margin-top: 14px; transition: all 0.2s; }
+    .meta-edit-btn:hover { border-color: var(--blue); color: var(--blue); }
+
+    /* ── COMPARATIVO ── */
+    .compare-table { width: 100%; border-collapse: collapse; }
+    .compare-table th, .compare-table td { padding: 12px 16px; text-align: left; border-bottom: 1px solid var(--border); font-size: 0.85rem; }
+    .compare-table th { color: var(--text-dim); font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.08em; font-weight: 700; background: rgba(255,255,255,0.02); }
+    .compare-table td { color: var(--text); }
+    .compare-table tr:last-child td { border-bottom: none; }
+    .compare-table tr:hover td { background: rgba(255,255,255,0.02); }
+    .rank { display: inline-flex; align-items: center; justify-content: center; width: 22px; height: 22px; border-radius: 6px; font-size: 0.75rem; font-weight: 800; }
+    .rank-1 { background: rgba(245,158,11,0.2); color: var(--yellow); }
+    .rank-2 { background: rgba(148,163,184,0.15); color: var(--gray); }
+    .rank-3 { background: rgba(205,127,50,0.15); color: #cd7f32; }
+    .perf-bar { height: 6px; background: rgba(255,255,255,0.06); border-radius: 10px; width: 80px; overflow: hidden; display: inline-block; vertical-align: middle; margin-left: 8px; }
+    .perf-fill { height: 100%; border-radius: 10px; }
+
+    /* ── CALENDÁRIO ── */
+    .cal-wrap { background: var(--card); border: 1px solid var(--border); border-radius: 14px; overflow: hidden; }
+    .cal-header { padding: 18px 22px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
+    .cal-header h3 { font-size: 1rem; font-weight: 800; color: var(--white); }
+    .cal-nav { display: flex; gap: 8px; align-items: center; }
+    .cal-nav button { background: rgba(255,255,255,0.06); border: 1px solid var(--border); color: var(--text-dim); border-radius: 6px; padding: 5px 12px; cursor: pointer; font-size: 0.82rem; transition: all 0.2s; }
+    .cal-nav button:hover { background: rgba(255,255,255,0.1); color: var(--white); }
+    .cal-nav span { font-size: 0.9rem; font-weight: 700; color: var(--white); min-width: 130px; text-align: center; }
+
+    .cal-grid { display: grid; grid-template-columns: repeat(7,1fr); }
+    .cal-dow { padding: 10px 4px; text-align: center; font-size: 0.65rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--text-dim); border-bottom: 1px solid var(--border); }
+    .cal-day { min-height: 72px; padding: 6px; border-right: 1px solid var(--border); border-bottom: 1px solid var(--border); cursor: pointer; transition: background 0.15s; position: relative; }
+    .cal-day:nth-child(7n) { border-right: none; }
+    .cal-day:hover { background: rgba(255,255,255,0.03); }
+    .cal-day.other-month .day-num { color: rgba(255,255,255,0.15); }
+    .cal-day.today { background: rgba(59,130,246,0.08); }
+    .cal-day.today .day-num { background: var(--blue); color: white; border-radius: 50%; width: 22px; height: 22px; display: flex; align-items: center; justify-content: center; }
+    .day-num { font-size: 0.78rem; color: var(--text-dim); margin-bottom: 4px; font-weight: 600; width: 22px; height: 22px; display: flex; align-items: center; justify-content: center; }
+    .cal-event { font-size: 0.62rem; font-weight: 700; padding: 2px 5px; border-radius: 3px; margin-bottom: 2px; line-height: 1.3; truncate; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+    .ev-blue   { background: rgba(59,130,246,0.25);  color: #93c5fd; }
+    .ev-green  { background: rgba(16,185,129,0.25);  color: #6ee7b7; }
+    .ev-red    { background: rgba(239,68,68,0.25);   color: #fca5a5; }
+    .ev-yellow { background: rgba(245,158,11,0.25);  color: #fcd34d; }
+    .ev-purple { background: rgba(139,92,246,0.25);  color: #c4b5fd; }
+
+    .cal-add-wrap { padding: 16px 20px; border-top: 1px solid var(--border); display: flex; gap: 10px; flex-wrap: wrap; }
+    .cal-input, .cal-select { background: var(--dark); border: 1px solid var(--border); border-radius: 7px; padding: 8px 12px; font-size: 0.82rem; color: var(--white); font-family: inherit; outline: none; transition: border-color 0.2s; }
+    .cal-input:focus, .cal-select:focus { border-color: var(--blue); }
+    .cal-input { flex: 1; min-width: 150px; }
+    .cal-add-btn { padding: 8px 16px; background: var(--blue); color: white; border: none; border-radius: 7px; font-size: 0.82rem; font-weight: 700; cursor: pointer; transition: background 0.2s; }
+    .cal-add-btn:hover { background: var(--blue-dark); }
+
+    /* ── LEMBRETES ── */
+    .tasks-wrap { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; }
+    .tasks-col { background: var(--card); border: 1px solid var(--border); border-radius: 14px; overflow: hidden; }
+    .tasks-col-hdr { padding: 14px 18px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
+    .tasks-col-hdr h4 { font-size: 0.88rem; font-weight: 800; color: var(--white); display: flex; align-items: center; gap: 7px; }
+    .task-count { background: rgba(255,255,255,0.1); color: var(--text-dim); font-size: 0.7rem; font-weight: 700; padding: 2px 7px; border-radius: 100px; }
+    .task-list { padding: 10px; display: flex; flex-direction: column; gap: 6px; min-height: 60px; }
+    .task-item { display: flex; align-items: flex-start; gap: 9px; padding: 9px 11px; background: rgba(255,255,255,0.03); border-radius: 8px; border: 1px solid transparent; transition: all 0.2s; }
+    .task-item:hover { border-color: var(--border); background: rgba(255,255,255,0.05); }
+    .task-item.done { opacity: 0.45; }
+    .task-cb { width: 16px; height: 16px; border-radius: 4px; border: 1.5px solid var(--border); background: none; cursor: pointer; flex-shrink: 0; margin-top: 1px; display: flex; align-items: center; justify-content: center; transition: all 0.2s; }
+    .task-item.done .task-cb { background: var(--green); border-color: var(--green); }
+    .task-cb-inner { display: none; }
+    .task-item.done .task-cb-inner { display: block; color: white; font-size: 0.65rem; font-weight: 900; }
+    .task-text { font-size: 0.82rem; color: var(--text); flex: 1; line-height: 1.4; }
+    .task-item.done .task-text { text-decoration: line-through; color: var(--text-dim); }
+    .task-lp { font-size: 0.65rem; color: var(--text-dim); margin-top: 2px; display: block; }
+    .task-del { background: none; border: none; color: var(--text-dim); cursor: pointer; font-size: 0.8rem; padding: 0 3px; opacity: 0; transition: opacity 0.2s, color 0.2s; }
+    .task-item:hover .task-del { opacity: 1; }
+    .task-del:hover { color: var(--red); }
+
+    .task-add-row { padding: 10px; border-top: 1px solid var(--border); display: flex; gap: 7px; }
+    .task-input { flex: 1; background: var(--dark); border: 1px solid var(--border); border-radius: 7px; padding: 7px 11px; font-size: 0.8rem; color: var(--white); font-family: inherit; outline: none; }
+    .task-input:focus { border-color: var(--blue); }
+    .task-add-btn { padding: 7px 12px; background: var(--blue); color: white; border: none; border-radius: 7px; font-size: 0.8rem; font-weight: 700; cursor: pointer; }
+
+    /* ── UTM ── */
+    .utm-wrap { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 24px; }
+    .utm-wrap h3 { font-size: 0.97rem; font-weight: 800; color: var(--white); margin-bottom: 6px; }
+    .utm-wrap > p { font-size: 0.82rem; color: var(--text-dim); margin-bottom: 18px; }
+    .utm-form { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 12px; margin-bottom: 14px; }
+    .utm-field label { display: block; font-size: 0.68rem; font-weight: 700; color: var(--text-dim); letter-spacing: 0.06em; text-transform: uppercase; margin-bottom: 5px; }
+    .utm-field select, .utm-field input { width: 100%; background: var(--dark); border: 1px solid var(--border); border-radius: 7px; padding: 9px 12px; font-size: 0.85rem; color: var(--white); font-family: inherit; outline: none; }
+    .utm-field select:focus, .utm-field input:focus { border-color: var(--blue); }
+    .utm-result { background: var(--dark); border: 1px solid var(--border); border-radius: 8px; padding: 12px 14px; font-size: 0.8rem; color: var(--cyan); word-break: break-all; font-family: monospace; display: flex; align-items: center; gap: 10px; min-height: 42px; }
+    .utm-copy { padding: 7px 14px; background: var(--blue); color: white; border: none; border-radius: 6px; font-size: 0.78rem; font-weight: 700; cursor: pointer; flex-shrink: 0; transition: background 0.2s; }
+    .utm-copy:hover { background: var(--blue-dark); }
+    .utm-copy.copied { background: var(--green); }
+
+    /* ── ANALYTICS ── */
+    .ga-wrap { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 24px; }
+    .ga-wrap h3 { font-size: 0.97rem; font-weight: 800; color: var(--white); margin-bottom: 6px; }
+    .ga-wrap > p { font-size: 0.82rem; color: var(--text-dim); margin-bottom: 18px; }
+    .ga-btns { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 16px; }
+    .ga-btn { display: inline-flex; align-items: center; gap: 7px; padding: 9px 16px; border-radius: 8px; font-size: 0.82rem; font-weight: 700; text-decoration: none; transition: all 0.2s; }
+    .ga-btn.orange { background: #e8710a; color: white; }
+    .ga-btn.orange:hover { background: #c75e08; }
+    .ga-btn.ghost  { background: rgba(255,255,255,0.05); border: 1px solid var(--border); color: var(--text); }
+    .ga-btn.ghost:hover { background: rgba(255,255,255,0.09); }
+    .ga-tip { background: rgba(59,130,246,0.08); border: 1px solid rgba(59,130,246,0.2); border-radius: 9px; padding: 12px 16px; font-size: 0.8rem; color: #93c5fd; line-height: 1.65; }
+    .ga-tip strong { color: var(--white); }
+    .ga-tip code { background: rgba(255,255,255,0.1); padding: 1px 5px; border-radius: 4px; font-size: 0.78rem; }
+
+    /* ── NOTAS ── */
+    .notes-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 14px; }
+    .note-item { background: var(--dark); border: 1px solid var(--border); border-radius: 9px; padding: 12px 14px; display: flex; align-items: flex-start; gap: 10px; }
+    .note-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; margin-top: 5px; }
+    .note-body { flex: 1; }
+    .note-text { font-size: 0.85rem; color: var(--text); line-height: 1.45; }
+    .note-meta { font-size: 0.7rem; color: var(--text-dim); margin-top: 3px; }
+    .note-del  { background: none; border: none; color: var(--text-dim); cursor: pointer; padding: 0 3px; transition: color 0.2s; }
+    .note-del:hover { color: var(--red); }
+    .note-add-row { display: flex; gap: 8px; flex-wrap: wrap; }
+    .note-select, .note-input { background: var(--dark); border: 1px solid var(--border); border-radius: 7px; padding: 9px 12px; font-size: 0.85rem; color: var(--white); font-family: inherit; outline: none; }
+    .note-select:focus, .note-input:focus { border-color: var(--blue); }
+    .note-input { flex: 1; min-width: 180px; }
+    .note-add { padding: 9px 16px; background: var(--blue); color: white; border: none; border-radius: 7px; font-size: 0.85rem; font-weight: 700; cursor: pointer; }
+
+    /* ── MODAL ── */
+    .overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.75); z-index: 200; align-items: center; justify-content: center; padding: 20px; }
+    .overlay.open { display: flex; }
+    .modal { background: var(--dark-2); border: 1px solid var(--border); border-radius: 18px; padding: 28px; width: 100%; max-width: 500px; max-height: 90vh; overflow-y: auto; }
+    .modal h3 { font-size: 1.05rem; font-weight: 800; color: var(--white); margin-bottom: 20px; }
+    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .f-field { display: flex; flex-direction: column; gap: 5px; }
+    .f-field.full { grid-column: 1/-1; }
+    .f-field label { font-size: 0.68rem; font-weight: 700; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.06em; }
+    .f-field input, .f-field select, .f-field textarea { background: var(--dark); border: 1px solid var(--border); border-radius: 7px; padding: 9px 12px; font-size: 0.85rem; color: var(--white); font-family: inherit; outline: none; resize: vertical; }
+    .f-field input:focus, .f-field select:focus, .f-field textarea:focus { border-color: var(--blue); }
+    .modal-actions { display: flex; gap: 9px; margin-top: 20px; }
+    .btn-cancel { flex: 1; padding: 11px; border-radius: 8px; background: transparent; border: 1px solid var(--border); color: var(--text-dim); font-size: 0.85rem; font-weight: 700; cursor: pointer; }
+    .btn-cancel:hover { background: rgba(255,255,255,0.05); color: var(--white); }
+    .btn-save { flex: 2; padding: 11px; border-radius: 8px; background: var(--blue); border: none; color: white; font-size: 0.85rem; font-weight: 700; cursor: pointer; }
+    .btn-save:hover { background: var(--blue-dark); }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 768px) {
+      .sidebar { display: none; }
+      .main { margin-left: 0; padding: 16px; }
+      .lp-grid { grid-template-columns: 1fr; }
+      .form-grid { grid-template-columns: 1fr; }
+      .cal-grid { font-size: 0.7rem; }
+      .cal-day { min-height: 52px; padding: 4px; }
+    }
+  </style>
+</head>
+<body>
+<!-- TELA DE LOGIN -->
+<div id="login-screen">
+  <div class="login-box">
+    <div class="login-logo">LP <span>Dashboard</span></div>
+    <div class="login-sub">MS Contabilidade · Luiz Pereira<br>Área restrita — informe a senha</div>
+    <label class="login-label">Senha de acesso</label>
+    <input class="login-input" type="password" id="login-input" placeholder="••••••••••" onkeydown="if(event.key==='Enter') verificarSenha()">
+    <button class="login-btn" onclick="verificarSenha()">🔐 Entrar</button>
+    <div class="login-error" id="login-error"></div>
+  </div>
+</div>
+
+<div class="layout">
+
+<!-- ── SIDEBAR ── -->
+<aside class="sidebar">
+  <div class="sidebar-logo">
+    <h1>LP <span>Dashboard</span></h1>
+    <p>Luiz Pereira · MS Contabilidade</p>
+  </div>
+  <div class="nav-group">
+    <span class="nav-label">Painel</span>
+    <button class="nav-item active" onclick="goTab('lps')"><span class="nav-icon">📄</span>Landing Pages</button>
+    <button class="nav-item" onclick="goTab('metas')"><span class="nav-icon">🎯</span>Metas</button>
+    <button class="nav-item" onclick="goTab('comparativo')"><span class="nav-icon">📊</span>Comparativo</button>
+    <button class="nav-item" onclick="goTab('calendario')"><span class="nav-icon">📅</span>Calendário</button>
+    <button class="nav-item" onclick="goTab('tarefas')"><span class="nav-icon">✅</span>Tarefas</button>
+    <button class="nav-item" onclick="goTab('utm')"><span class="nav-icon">🔗</span>UTM</button>
+    <button class="nav-item" onclick="goTab('analytics')"><span class="nav-icon">📈</span>Analytics</button>
+    <button class="nav-item" onclick="goTab('notas')"><span class="nav-icon">📝</span>Notas</button>
+  </div>
+  <div class="nav-group" style="margin-top:8px">
+    <span class="nav-label">Acesso rápido</span>
+    <a class="nav-item" href="https://analytics.google.com" target="_blank"><span class="nav-icon">📈</span>Google Analytics</a>
+    <a class="nav-item" href="https://hpanel.hostinger.com" target="_blank"><span class="nav-icon">🌐</span>Hostinger</a>
+    <a class="nav-item" href="https://kiwify.com.br" target="_blank"><span class="nav-icon">🛒</span>Kiwify</a>
+    <a class="nav-item" href="https://lookerstudio.google.com" target="_blank"><span class="nav-icon">📊</span>Looker Studio</a>
+  </div>
+  <div class="sidebar-footer">
+    <p style="font-size:0.7rem;color:var(--text-dim)">Google Analytics</p>
+    <div class="ga-badge"><span class="ga-dot"></span>G-VXRBNJY2LD · Ativo</div>
+  </div>
+</aside>
+
+<!-- ── MAIN ── -->
+<main class="main">
+
+  <!-- TOPBAR -->
+  <div class="topbar">
+    <div class="topbar-left">
+      <h2>Central de Landing Pages</h2>
+      <p id="data-hoje"></p>
+    </div>
+    <div class="topbar-right">
+      <button class="btn btn-ghost" onclick="goTab('calendario')">📅 Agendar</button>
+      <button class="btn btn-blue" onclick="abrirModal()">+ Nova LP</button>
+    </div>
+  </div>
+
+  <!-- SUMMARY -->
+  <div class="summary-grid">
+    <div class="s-card c-blue">
+      <div class="s-icon">📄</div>
+      <div class="s-value" id="s-total">3</div>
+      <div class="s-label">Total de LPs</div>
+      <div class="s-sub" style="color:var(--blue)">Criadas este mês</div>
+    </div>
+    <div class="s-card c-green">
+      <div class="s-icon">🟢</div>
+      <div class="s-value" id="s-online">3</div>
+      <div class="s-label">No Ar</div>
+      <div class="s-sub" style="color:var(--green)">↑ Todas no ar! 🎉</div>
+    </div>
+    <div class="s-card c-yellow">
+      <div class="s-icon">🔧</div>
+      <div class="s-value" id="s-dev">0</div>
+      <div class="s-label">Faltam subir</div>
+      <div class="s-sub" style="color:var(--green)">Todas publicadas ✅</div>
+    </div>
+    <div class="s-card c-purple">
+      <div class="s-icon">🎯</div>
+      <div class="s-value" id="s-leads">0</div>
+      <div class="s-label">Leads este mês</div>
+      <div class="s-sub" style="color:var(--text-dim)">Atualizar manualmente</div>
+    </div>
+    <div class="s-card c-cyan">
+      <div class="s-icon">📊</div>
+      <div class="s-value">GA4</div>
+      <div class="s-label">Rastreamento</div>
+      <div class="s-sub" style="color:var(--green)">● 3 LPs rastreadas</div>
+    </div>
+  </div>
+
+  <!-- TABS -->
+  <div class="tabs">
+    <button class="tab active" onclick="switchTab('lps',this)">📄 LPs</button>
+    <button class="tab" onclick="switchTab('metas',this)">🎯 Metas</button>
+    <button class="tab" onclick="switchTab('comparativo',this)">📊 Comparativo</button>
+    <button class="tab" onclick="switchTab('calendario',this)">📅 Calendário</button>
+    <button class="tab" onclick="switchTab('tarefas',this)">✅ Tarefas</button>
+    <button class="tab" onclick="switchTab('utm',this)">🔗 UTM</button>
+    <button class="tab" onclick="switchTab('analytics',this)">📈 Analytics</button>
+    <button class="tab" onclick="switchTab('notas',this)">📝 Notas</button>
+  </div>
+
+  <!-- ═══ TAB: LPS ═══ -->
+  <div class="tab-content active" id="tab-lps">
+    <div class="section-hdr">
+      <h3>📄 Landing Pages</h3>
+      <span id="lp-count">3 páginas cadastradas</span>
+    </div>
+    <div class="lp-grid" id="lp-grid">
+
+      <!-- LP 1 — Clínicas -->
+      <div class="lp-card" data-status="dev" data-id="clinicas">
+        <div class="lp-hdr">
+          <div class="lp-hdr-left">
+            <div class="lp-ico ico-teal">🏥</div>
+            <div>
+              <div class="lp-title">MS Contabilidade — Clínicas</div>
+              <div class="lp-desc">Captação de leads para consultoria contábil especializada</div>
+            </div>
+          </div>
+          <span class="badge online"><span class="badge-dot"></span>No Ar</span>
+        </div>
+        <div class="lp-body">
+          <div class="lp-goal">
+            <div class="lp-goal-hdr"><span>Meta de leads: <strong>10/mês</strong></span><span id="prog-clinicas-txt">0 / 10</span></div>
+            <div class="progress-bar"><div class="progress-fill fill-blue" id="prog-clinicas" style="width:0%"></div></div>
+          </div>
+          <div class="lp-metrics">
+            <div class="metric"><span class="m-val" id="v-clinicas">—</span><span class="m-lbl">Visitas</span></div>
+            <div class="metric"><span class="m-val" id="c-clinicas">—</span><span class="m-lbl">Cliques CTA</span></div>
+            <div class="metric"><span class="m-val" id="l-clinicas">0</span><span class="m-lbl">Leads</span></div>
+          </div>
+          <div class="lp-tags">
+            <span class="tag t-blue">Contabilidade</span>
+            <span class="tag t-cyan">Saúde</span>
+            <span class="tag t-yellow">WhatsApp</span>
+            <span class="tag t-green">GA4 ✓</span>
+          </div>
+          <div class="lp-actions">
+            <a href="https://msinaiconsultoria.com.br/clinicas" target="_blank" class="lp-btn primary">👁 Ver online</a>
+            <button class="lp-btn" onclick="editarMetrica('clinicas')">✏️ Métricas</button>
+            <button class="lp-btn" onclick="abrirGA('lp_clinicas')">📊 GA4</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- LP 2 — Reforma -->
+      <div class="lp-card" data-status="online" data-id="reforma">
+        <div class="lp-hdr">
+          <div class="lp-hdr-left">
+            <div class="lp-ico ico-red">⚖️</div>
+            <div>
+              <div class="lp-title">Reforma Tributária — Saúde</div>
+              <div class="lp-desc">Empresários do setor saúde preocupados com impacto fiscal</div>
+            </div>
+          </div>
+          <span class="badge online"><span class="badge-dot"></span>No Ar</span>
+        </div>
+        <div class="lp-body">
+          <div class="lp-goal">
+            <div class="lp-goal-hdr"><span>Meta de leads: <strong>15/mês</strong></span><span id="prog-reforma-txt">0 / 15</span></div>
+            <div class="progress-bar"><div class="progress-fill fill-yellow" id="prog-reforma" style="width:0%"></div></div>
+          </div>
+          <div class="lp-metrics">
+            <div class="metric"><span class="m-val" id="v-reforma">—</span><span class="m-lbl">Visitas</span></div>
+            <div class="metric"><span class="m-val" id="c-reforma">—</span><span class="m-lbl">Cliques CTA</span></div>
+            <div class="metric"><span class="m-val" id="l-reforma">0</span><span class="m-lbl">Leads</span></div>
+          </div>
+          <div class="lp-tags">
+            <span class="tag t-red">Reforma Tributária</span>
+            <span class="tag t-cyan">Saúde</span>
+            <span class="tag t-yellow">WhatsApp</span>
+            <span class="tag t-green">GA4 ✓</span>
+          </div>
+          <div class="lp-actions">
+            <a href="https://msinaiconsultoria.com.br/reforma-tributaria" target="_blank" class="lp-btn primary">👁 Ver online</a>
+            <button class="lp-btn" onclick="editarMetrica('reforma')">✏️ Métricas</button>
+            <button class="lp-btn" onclick="abrirGA('lp_reforma_tributaria')">📊 GA4</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- LP 3 — SPV -->
+      <div class="lp-card" data-status="dev" data-id="spv">
+        <div class="lp-hdr">
+          <div class="lp-hdr-left">
+            <div class="lp-ico ico-green">🚀</div>
+            <div>
+              <div class="lp-title">SPV — Primeira Venda</div>
+              <div class="lp-desc">Afiliado Kiwify — Sistema de Primeira Venda (Hey Investidor)</div>
+            </div>
+          </div>
+          <span class="badge online"><span class="badge-dot"></span>No Ar</span>
+        </div>
+        <div class="lp-body">
+          <div class="lp-goal">
+            <div class="lp-goal-hdr"><span>Meta de vendas: <strong>20/mês</strong></span><span id="prog-spv-txt">0 / 20</span></div>
+            <div class="progress-bar"><div class="progress-fill fill-green" id="prog-spv" style="width:0%"></div></div>
+          </div>
+          <div class="lp-metrics">
+            <div class="metric"><span class="m-val" id="v-spv">—</span><span class="m-lbl">Visitas</span></div>
+            <div class="metric"><span class="m-val" id="c-spv">—</span><span class="m-lbl">Cliques CTA</span></div>
+            <div class="metric"><span class="m-val" id="l-spv">0</span><span class="m-lbl">Vendas</span></div>
+          </div>
+          <div class="lp-tags">
+            <span class="tag t-green">Afiliado</span>
+            <span class="tag t-purple">Kiwify</span>
+            <span class="tag t-blue">Mkt Digital</span>
+            <span class="tag t-green">GA4 ✓</span>
+          </div>
+          <div class="lp-actions">
+            <a href="https://msinaiconsultoria.com.br/spv" target="_blank" class="lp-btn primary">👁 Ver online</a>
+            <button class="lp-btn" onclick="editarMetrica('spv')">✏️ Métricas</button>
+            <button class="lp-btn" onclick="abrirGA('lp_spv_afiliado')">📊 GA4</button>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /lp-grid -->
+  </div>
+
+  <!-- ═══ TAB: METAS ═══ -->
+  <div class="tab-content" id="tab-metas">
+    <div class="metas-grid">
+      <div class="meta-card">
+        <div class="meta-card-hdr"><h4>🏥 Clínicas Médicas</h4><span>Maio 2025</span></div>
+        <div class="meta-item">
+          <div class="meta-row"><span class="meta-name">Leads gerados</span><span class="meta-vals"><strong id="ml-clinicas">0</strong> / 10</span></div>
+          <div class="progress-bar"><div class="progress-fill fill-blue" id="mp-clinicas" style="width:0%"></div></div>
+        </div>
+        <div class="meta-item">
+          <div class="meta-row"><span class="meta-name">Visitas</span><span class="meta-vals"><strong id="mv-clinicas">—</strong> / 300</span></div>
+          <div class="progress-bar"><div class="progress-fill fill-blue" style="width:0%"></div></div>
+        </div>
+        <div class="meta-item">
+          <div class="meta-row"><span class="meta-name">Taxa de conversão</span><span class="meta-vals"><strong>—</strong></span></div>
+          <div class="progress-bar"><div class="progress-fill fill-blue" style="width:0%"></div></div>
+        </div>
+        <button class="meta-edit-btn" onclick="editarMetrica('clinicas')">✏️ Atualizar métricas</button>
+      </div>
+
+      <div class="meta-card">
+        <div class="meta-card-hdr"><h4>⚖️ Reforma Tributária</h4><span>Maio 2025</span></div>
+        <div class="meta-item">
+          <div class="meta-row"><span class="meta-name">Leads gerados</span><span class="meta-vals"><strong id="ml-reforma">0</strong> / 15</span></div>
+          <div class="progress-bar"><div class="progress-fill fill-yellow" id="mp-reforma" style="width:0%"></div></div>
+        </div>
+        <div class="meta-item">
+          <div class="meta-row"><span class="meta-name">Visitas</span><span class="meta-vals"><strong id="mv-reforma">—</strong> / 500</span></div>
+          <div class="progress-bar"><div class="progress-fill fill-yellow" style="width:0%"></div></div>
+        </div>
+        <div class="meta-item">
+          <div class="meta-row"><span class="meta-name">Taxa de conversão</span><span class="meta-vals"><strong>—</strong></span></div>
+          <div class="progress-bar"><div class="progress-fill fill-yellow" style="width:0%"></div></div>
+        </div>
+        <button class="meta-edit-btn" onclick="editarMetrica('reforma')">✏️ Atualizar métricas</button>
+      </div>
+
+      <div class="meta-card">
+        <div class="meta-card-hdr"><h4>🚀 SPV Afiliado</h4><span>Maio 2025</span></div>
+        <div class="meta-item">
+          <div class="meta-row"><span class="meta-name">Vendas</span><span class="meta-vals"><strong id="ml-spv">0</strong> / 20</span></div>
+          <div class="progress-bar"><div class="progress-fill fill-green" id="mp-spv" style="width:0%"></div></div>
+        </div>
+        <div class="meta-item">
+          <div class="meta-row"><span class="meta-name">Visitas</span><span class="meta-vals"><strong id="mv-spv">—</strong> / 400</span></div>
+          <div class="progress-bar"><div class="progress-fill fill-green" style="width:0%"></div></div>
+        </div>
+        <div class="meta-item">
+          <div class="meta-row"><span class="meta-name">Receita estimada</span><span class="meta-vals"><strong id="mv-receita">R$ 0</strong></span></div>
+          <div class="progress-bar"><div class="progress-fill fill-green" style="width:0%"></div></div>
+        </div>
+        <button class="meta-edit-btn" onclick="editarMetrica('spv')">✏️ Atualizar métricas</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ TAB: COMPARATIVO ═══ -->
+  <div class="tab-content" id="tab-comparativo">
+    <div style="background:var(--card);border:1px solid var(--border);border-radius:14px;overflow:hidden;margin-bottom:20px">
+      <div style="padding:18px 22px;border-bottom:1px solid var(--border)">
+        <h3 style="font-size:0.97rem;font-weight:800;color:var(--white)">📊 Comparativo de Performance</h3>
+        <p style="font-size:0.8rem;color:var(--text-dim);margin-top:3px">Atualize as métricas em cada LP para ver o comparativo em tempo real</p>
+      </div>
+      <div style="overflow-x:auto">
+        <table class="compare-table">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Landing Page</th>
+              <th>Status</th>
+              <th>Visitas</th>
+              <th>Leads</th>
+              <th>Conversão</th>
+              <th>Meta</th>
+              <th>Performance</th>
+            </tr>
+          </thead>
+          <tbody id="compare-body">
+            <tr>
+              <td><span class="rank rank-1">1°</span></td>
+              <td><strong style="color:var(--white)">⚖️ Reforma Tributária</strong></td>
+              <td><span class="badge online" style="display:inline-flex"><span class="badge-dot"></span>No Ar</span></td>
+              <td id="ct-v-reforma">—</td>
+              <td id="ct-l-reforma">0</td>
+              <td id="ct-tx-reforma">—</td>
+              <td>15 leads</td>
+              <td><span class="perf-bar"><span class="perf-fill" style="width:0%;background:var(--yellow)"></span></span> 0%</td>
+            </tr>
+            <tr>
+              <td><span class="rank rank-2">2°</span></td>
+              <td><strong style="color:var(--white)">🏥 Clínicas Médicas</strong></td>
+              <td><span class="badge dev" style="display:inline-flex"><span class="badge-dot"></span>Local</span></td>
+              <td id="ct-v-clinicas">—</td>
+              <td id="ct-l-clinicas">0</td>
+              <td id="ct-tx-clinicas">—</td>
+              <td>10 leads</td>
+              <td><span class="perf-bar"><span class="perf-fill" style="width:0%;background:var(--blue)"></span></span> 0%</td>
+            </tr>
+            <tr>
+              <td><span class="rank rank-3">3°</span></td>
+              <td><strong style="color:var(--white)">🚀 SPV Afiliado</strong></td>
+              <td><span class="badge dev" style="display:inline-flex"><span class="badge-dot"></span>Local</span></td>
+              <td id="ct-v-spv">—</td>
+              <td id="ct-l-spv">0</td>
+              <td id="ct-tx-spv">—</td>
+              <td>20 vendas</td>
+              <td><span class="perf-bar"><span class="perf-fill" style="width:0%;background:var(--green)"></span></span> 0%</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ TAB: CALENDÁRIO ═══ -->
+  <div class="tab-content" id="tab-calendario">
+    <div class="cal-wrap">
+      <div class="cal-header">
+        <h3>📅 Calendário de Publicações</h3>
+        <div class="cal-nav">
+          <button onclick="calNav(-1)">‹</button>
+          <span id="cal-mes-label"></span>
+          <button onclick="calNav(1)">›</button>
+        </div>
+      </div>
+      <div class="cal-grid" id="cal-grid">
+        <div class="cal-dow">DOM</div><div class="cal-dow">SEG</div><div class="cal-dow">TER</div>
+        <div class="cal-dow">QUA</div><div class="cal-dow">QUI</div><div class="cal-dow">SEX</div><div class="cal-dow">SÁB</div>
+      </div>
+      <div class="cal-add-wrap">
+        <input type="date" class="cal-input" id="ev-data" style="flex:0 0 auto;width:150px">
+        <input type="text" class="cal-input" id="ev-texto" placeholder="Descrição do evento...">
+        <select class="cal-select" id="ev-cor">
+          <option value="ev-blue">🔵 Divulgação</option>
+          <option value="ev-green">🟢 LP no Ar</option>
+          <option value="ev-yellow">🟡 Análise</option>
+          <option value="ev-red">🔴 Urgente</option>
+          <option value="ev-purple">🟣 Conteúdo</option>
+        </select>
+        <button class="cal-add-btn" onclick="adicionarEvento()">+ Adicionar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ TAB: TAREFAS ═══ -->
+  <div class="tab-content" id="tab-tarefas">
+    <div class="tasks-wrap">
+      <div class="tasks-col">
+        <div class="tasks-col-hdr">
+          <h4>🔴 Pendente <span class="task-count" id="tc-pendente">0</span></h4>
+        </div>
+        <div class="task-list" id="tl-pendente"></div>
+        <div class="task-add-row">
+          <input class="task-input" type="text" id="ti-pendente" placeholder="Nova tarefa..." onkeydown="if(event.key==='Enter') addTask('pendente')">
+          <button class="task-add-btn" onclick="addTask('pendente')">+</button>
+        </div>
+      </div>
+      <div class="tasks-col">
+        <div class="tasks-col-hdr">
+          <h4>🟡 Em Andamento <span class="task-count" id="tc-andamento">0</span></h4>
+        </div>
+        <div class="task-list" id="tl-andamento"></div>
+        <div class="task-add-row">
+          <input class="task-input" type="text" id="ti-andamento" placeholder="Nova tarefa..." onkeydown="if(event.key==='Enter') addTask('andamento')">
+          <button class="task-add-btn" onclick="addTask('andamento')">+</button>
+        </div>
+      </div>
+      <div class="tasks-col">
+        <div class="tasks-col-hdr">
+          <h4>🟢 Concluído <span class="task-count" id="tc-concluido">0</span></h4>
+        </div>
+        <div class="task-list" id="tl-concluido"></div>
+        <div class="task-add-row">
+          <input class="task-input" type="text" id="ti-concluido" placeholder="Nova tarefa..." onkeydown="if(event.key==='Enter') addTask('concluido')">
+          <button class="task-add-btn" onclick="addTask('concluido')">+</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ TAB: UTM ═══ -->
+  <div class="tab-content" id="tab-utm">
+    <div class="utm-wrap">
+      <h3>🔗 Gerador de Links UTM</h3>
+      <p>Crie links rastreáveis para cada canal e saiba exatamente de onde vêm suas visitas no GA4.</p>
+      <div class="utm-form">
+        <div class="utm-field">
+          <label>Página</label>
+          <select id="utm-page">
+            <option value="">Selecionar LP...</option>
+            <option value="https://msinaiconsultoria.com.br">LP Clínicas Médicas</option>
+            <option value="https://msinaiconsultoria.com.br/reforma-tributaria">LP Reforma Tributária</option>
+            <option value="https://msinaiconsultoria.com.br/spv">LP SPV Afiliado</option>
+          </select>
+        </div>
+        <div class="utm-field">
+          <label>Canal (utm_source)</label>
+          <select id="utm-source">
+            <option value="instagram">Instagram</option>
+            <option value="whatsapp">WhatsApp</option>
+            <option value="facebook">Facebook</option>
+            <option value="linkedin">LinkedIn</option>
+            <option value="youtube">YouTube</option>
+            <option value="google">Google Ads</option>
+            <option value="email">E-mail</option>
+          </select>
+        </div>
+        <div class="utm-field">
+          <label>Mídia (utm_medium)</label>
+          <select id="utm-medium">
+            <option value="social">Social Orgânico</option>
+            <option value="stories">Stories</option>
+            <option value="reels">Reels</option>
+            <option value="bio">Link na Bio</option>
+            <option value="cpc">Tráfego Pago</option>
+            <option value="mensagem">Mensagem direta</option>
+          </select>
+        </div>
+        <div class="utm-field">
+          <label>Campanha</label>
+          <input type="text" id="utm-campaign" placeholder="ex: reforma-maio-2025">
+        </div>
+      </div>
+      <div class="utm-result">
+        <span id="utm-url" style="flex:1">← Preencha os campos para gerar o link</span>
+        <button class="utm-copy" id="utm-copy-btn" onclick="copiarUTM()">📋 Copiar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ TAB: ANALYTICS ═══ -->
+  <div class="tab-content" id="tab-analytics">
+    <div class="ga-wrap">
+      <h3>📈 Google Analytics 4</h3>
+      <p>ID de medição: <strong style="color:var(--cyan)">G-VXRBNJY2LD</strong> · Propriedade: <strong style="color:var(--cyan)">406559564</strong> · Instalado nas 3 LPs</p>
+      <div class="ga-btns">
+        <a href="https://analytics.google.com/analytics/web/#/p406559564/reports/intelligenthome" target="_blank" class="ga-btn orange">📈 Abrir Analytics</a>
+        <a href="https://analytics.google.com/analytics/web/#/p406559564/reports/realtime" target="_blank" class="ga-btn ghost">⚡ Tempo Real</a>
+        <a href="https://analytics.google.com/analytics/web/#/p406559564/reports/explorer?r=all-pages-and-screens" target="_blank" class="ga-btn ghost">📄 Páginas</a>
+        <a href="https://analytics.google.com/analytics/web/#/p406559564/reports/explorer?r=traffic-acquisition" target="_blank" class="ga-btn ghost">🚦 Aquisição</a>
+        <a href="https://lookerstudio.google.com" target="_blank" class="ga-btn ghost">📊 Looker Studio</a>
+      </div>
+      <div class="ga-tip">
+        <strong>Ver cliques nos botões CTA:</strong> GA4 → Relatórios → Engajamento → Eventos → filtrar <code>cta_click</code><br>
+        <strong>Por página:</strong> parâmetro <code>page_name</code> → <code>lp_clinicas</code> · <code>lp_reforma_tributaria</code> · <code>lp_spv_afiliado</code><br>
+        <strong>Origem do tráfego:</strong> GA4 → Aquisição → Aquisição de tráfego — veja Instagram, WhatsApp, Google etc.
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ TAB: NOTAS ═══ -->
+  <div class="tab-content" id="tab-notas">
+    <div style="background:var(--card);border:1px solid var(--border);border-radius:14px;padding:24px">
+      <h3 style="font-size:0.97rem;font-weight:800;color:var(--white);margin-bottom:6px">📝 Anotações & Histórico</h3>
+      <p style="font-size:0.82rem;color:var(--text-dim);margin-bottom:16px">Registre decisões, observações e histórico de cada LP.</p>
+      <div class="notes-list" id="notes-list"></div>
+      <div class="note-add-row">
+        <select class="note-select" id="note-lp">
+          <option value="clinicas">🏥 Clínicas</option>
+          <option value="reforma">⚖️ Reforma</option>
+          <option value="spv">🚀 SPV</option>
+          <option value="geral">📌 Geral</option>
+        </select>
+        <input class="note-input" type="text" id="note-input" placeholder="Adicionar anotação..." onkeydown="if(event.key==='Enter') addNota()">
+        <button class="note-add" onclick="addNota()">+ Salvar</button>
+      </div>
+    </div>
+  </div>
+
+</main>
+</div>
+
+<!-- MODAL NOVA LP -->
+<div class="overlay" id="overlay" onclick="fecharOverlay(event)">
+  <div class="modal">
+    <h3>➕ Cadastrar Nova Landing Page</h3>
+    <div class="form-grid">
+      <div class="f-field full"><label>Nome</label><input type="text" id="f-nome" placeholder="ex: LP Fator R — Médicos PJ"></div>
+      <div class="f-field full"><label>Descrição</label><textarea id="f-desc" rows="2" placeholder="Objetivo da página..."></textarea></div>
+      <div class="f-field"><label>Categoria</label>
+        <select id="f-cat"><option value="contabil">Contabilidade</option><option value="afiliado">Afiliado</option><option value="servico">Serviço</option><option value="outro">Outro</option></select>
+      </div>
+      <div class="f-field"><label>Status</label>
+        <select id="f-status"><option value="dev">Local</option><option value="online">No Ar</option><option value="pausado">Pausado</option></select>
+      </div>
+      <div class="f-field full"><label>URL da página (quando no ar)</label><input type="text" id="f-url" placeholder="https://msinaiconsultoria.com.br/..."></div>
+      <div class="f-field full"><label>Meta mensal</label><input type="text" id="f-meta" placeholder="ex: 10 leads, 20 vendas"></div>
+      <div class="f-field full"><label>Tags (separadas por vírgula)</label><input type="text" id="f-tags" placeholder="ex: Saúde, WhatsApp, GA4"></div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="fecharModal()">Cancelar</button>
+      <button class="btn-save" onclick="salvarLP()">✅ Salvar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL MÉTRICAS -->
+<div class="overlay" id="overlay-met" onclick="fecharOverlay(event)">
+  <div class="modal">
+    <h3 id="met-titulo">✏️ Atualizar Métricas</h3>
+    <input type="hidden" id="met-id">
+    <div class="form-grid">
+      <div class="f-field"><label>Visitas</label><input type="number" id="met-visitas" placeholder="0"></div>
+      <div class="f-field"><label>Cliques CTA</label><input type="number" id="met-cliques" placeholder="0"></div>
+      <div class="f-field"><label>Leads / Conversões</label><input type="number" id="met-leads" placeholder="0"></div>
+      <div class="f-field"><label>Meta mensal</label><input type="number" id="met-meta" placeholder="10"></div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="fecharMetModal()">Cancelar</button>
+      <button class="btn-save" onclick="salvarMetrica()">✅ Salvar</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── LOGIN ────────────────────────────────────────────
+(function() {
+  const HASH = '7f4a2b9e1c8d3f6a0e5b7d2c4f8a1e3b'; // hash de Ms12953!@#
+  function hashStr(s) {
+    let h = 0;
+    for(let i=0;i<s.length;i++) h = Math.imul(31,h)+s.charCodeAt(i)|0;
+    return Math.abs(h).toString(16).padStart(8,'0');
+  }
+  // Verificar sessão salva
+  if(sessionStorage.getItem('dash_auth') === '1') {
+    document.getElementById('login-screen').classList.add('hidden');
+  }
+  window.verificarSenha = function() {
+    const val = document.getElementById('login-input').value;
+    const err = document.getElementById('login-error');
+    if(val === 'Ms12953!@#') {
+      sessionStorage.setItem('dash_auth','1');
+      document.getElementById('login-screen').classList.add('hidden');
+      err.textContent = '';
+    } else {
+      err.textContent = '❌ Senha incorreta. Tente novamente.';
+      document.getElementById('login-input').value = '';
+      document.getElementById('login-input').focus();
+    }
+  };
+})();
+
+// ── ESTADO ──────────────────────────────────────────
+const S = {
+  metricas: JSON.parse(localStorage.getItem('db_metricas') || '{"clinicas":{"v":0,"c":0,"l":0,"meta":10},"reforma":{"v":0,"c":0,"l":0,"meta":15},"spv":{"v":0,"c":0,"l":0,"meta":20}}'),
+  tarefas:  JSON.parse(localStorage.getItem('db_tarefas')  || '{"pendente":[],"andamento":[],"concluido":[]}'),
+  notas:    JSON.parse(localStorage.getItem('db_notas')    || '[]'),
+  eventos:  JSON.parse(localStorage.getItem('db_eventos')  || '[]'),
+  lps:      JSON.parse(localStorage.getItem('db_lps')      || '[]'),
+  calDate:  new Date(),
+};
+
+function save(key, val) { localStorage.setItem('db_'+key, JSON.stringify(val)); }
+
+// ── DATA ────────────────────────────────────────────
+const hoje = new Date();
+document.getElementById('data-hoje').textContent =
+  hoje.toLocaleDateString('pt-BR',{weekday:'long',day:'2-digit',month:'long',year:'numeric'});
+
+// ── TABS ────────────────────────────────────────────
+function switchTab(id, btn) {
+  document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('tab-'+id).classList.add('active');
+  if(btn) btn.classList.add('active');
+  // Sync sidebar
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+}
+function goTab(id) {
+  switchTab(id);
+  const tabs = ['lps','metas','comparativo','calendario','tarefas','utm','analytics','notas'];
+  const idx = tabs.indexOf(id);
+  if(idx >= 0) document.querySelectorAll('.tab')[idx].classList.add('active');
+}
+
+// ── MÉTRICAS ────────────────────────────────────────
+function renderMetricas() {
+  ['clinicas','reforma','spv'].forEach(id => {
+    const m = S.metricas[id];
+    const pct = m.meta > 0 ? Math.min(100, Math.round(m.l/m.meta*100)) : 0;
+
+    // Cards LP
+    document.getElementById('v-'+id).textContent = m.v || '—';
+    document.getElementById('c-'+id).textContent = m.c || '—';
+    document.getElementById('l-'+id).textContent = m.l;
+    const pg = document.getElementById('prog-'+id);
+    if(pg) { pg.style.width = pct+'%'; }
+    const pt = document.getElementById('prog-'+id+'-txt');
+    if(pt) pt.textContent = m.l+' / '+m.meta;
+
+    // Metas tab
+    const ml = document.getElementById('ml-'+id);
+    if(ml) ml.textContent = m.l;
+    const mp = document.getElementById('mp-'+id);
+    if(mp) mp.style.width = pct+'%';
+    const mv = document.getElementById('mv-'+id);
+    if(mv) mv.textContent = m.v || '—';
+
+    // Comparativo
+    const ctv = document.getElementById('ct-v-'+id); if(ctv) ctv.textContent = m.v || '—';
+    const ctl = document.getElementById('ct-l-'+id); if(ctl) ctl.textContent = m.l;
+    const ctx = document.getElementById('ct-tx-'+id);
+    if(ctx) ctx.textContent = m.v > 0 ? (m.l/m.v*100).toFixed(1)+'%' : '—';
+
+    // SPV receita
+    if(id==='spv') {
+      const r = document.getElementById('mv-receita');
+      if(r) r.textContent = 'R$ '+(m.l * 19.9 * 0.3).toFixed(2).replace('.',',');
+    }
+  });
+
+  // Summary leads
+  const total = (S.metricas.clinicas.l||0)+(S.metricas.reforma.l||0)+(S.metricas.spv.l||0);
+  document.getElementById('s-leads').textContent = total;
+}
+
+function editarMetrica(id) {
+  const m = S.metricas[id];
+  const nomes = {clinicas:'Clínicas Médicas',reforma:'Reforma Tributária',spv:'SPV Afiliado'};
+  document.getElementById('met-titulo').textContent = '✏️ Métricas — '+nomes[id];
+  document.getElementById('met-id').value = id;
+  document.getElementById('met-visitas').value = m.v || '';
+  document.getElementById('met-cliques').value = m.c || '';
+  document.getElementById('met-leads').value = m.l || '';
+  document.getElementById('met-meta').value = m.meta || '';
+  document.getElementById('overlay-met').classList.add('open');
+}
+function salvarMetrica() {
+  const id = document.getElementById('met-id').value;
+  S.metricas[id] = {
+    v: parseInt(document.getElementById('met-visitas').value)||0,
+    c: parseInt(document.getElementById('met-cliques').value)||0,
+    l: parseInt(document.getElementById('met-leads').value)||0,
+    meta: parseInt(document.getElementById('met-meta').value)||10,
+  };
+  save('metricas', S.metricas);
+  renderMetricas();
+  fecharMetModal();
+}
+function fecharMetModal() { document.getElementById('overlay-met').classList.remove('open'); }
+
+// ── TAREFAS ─────────────────────────────────────────
+const tarefasIniciais = {
+  pendente: [
+    {id:1, texto:'Subir LP Clínicas Médicas na Hostinger', done:false},
+    {id:2, texto:'Subir LP SPV Afiliado na Hostinger', done:false},
+    {id:3, texto:'Subir Dashboard online na Hostinger', done:false},
+    {id:4, texto:'Configurar Looker Studio com GA4', done:false},
+    {id:5, texto:'Criar UTMs para divulgação no Instagram', done:false},
+  ],
+  andamento: [
+    {id:6, texto:'LP Reforma Tributária — divulgar nos canais', done:false},
+  ],
+  concluido: [
+    {id:7, texto:'LP Clínicas Médicas criada', done:true},
+    {id:8, texto:'LP Reforma Tributária criada e publicada', done:true},
+    {id:9, texto:'LP SPV Afiliado criada', done:true},
+    {id:10, texto:'GA4 instalado nas 3 LPs', done:true},
+    {id:11, texto:'Dashboard HTML criado', done:true},
+  ],
+};
+
+if(!S.tarefas.pendente.length && !S.tarefas.andamento.length && !S.tarefas.concluido.length) {
+  S.tarefas = tarefasIniciais;
+  save('tarefas', S.tarefas);
+}
+
+function renderTarefas() {
+  ['pendente','andamento','concluido'].forEach(col => {
+    const list = document.getElementById('tl-'+col);
+    const count = document.getElementById('tc-'+col);
+    const items = S.tarefas[col];
+    count.textContent = items.filter(t=>!t.done).length || items.length;
+    list.innerHTML = items.map(t => `
+      <div class="task-item${t.done?' done':''}" data-id="${t.id}" data-col="${col}">
+        <div class="task-cb" onclick="toggleTask(${t.id},'${col}')">
+          <span class="task-cb-inner">✓</span>
+        </div>
+        <div style="flex:1">
+          <div class="task-text">${t.texto}</div>
+        </div>
+        <button class="task-del" onclick="delTask(${t.id},'${col}')">✕</button>
+      </div>
+    `).join('') || '<div style="padding:8px 11px;font-size:0.78rem;color:var(--text-dim)">Nenhuma tarefa</div>';
+  });
+}
+
+function addTask(col) {
+  const input = document.getElementById('ti-'+col);
+  const texto = input.value.trim();
+  if(!texto) return;
+  S.tarefas[col].push({id: Date.now(), texto, done: false});
+  save('tarefas', S.tarefas);
+  renderTarefas();
+  input.value = '';
+}
+function toggleTask(id, col) {
+  const t = S.tarefas[col].find(x=>x.id===id);
+  if(t) { t.done = !t.done; save('tarefas', S.tarefas); renderTarefas(); }
+}
+function delTask(id, col) {
+  S.tarefas[col] = S.tarefas[col].filter(x=>x.id!==id);
+  save('tarefas', S.tarefas);
+  renderTarefas();
+}
+
+// ── CALENDÁRIO ──────────────────────────────────────
+const eventosIniciais = [
+  {id:1, data:'2025-05-29', texto:'Dashboard criado', cor:'ev-green'},
+  {id:2, data:'2025-05-29', texto:'Reforma Tributária no ar', cor:'ev-green'},
+  {id:3, data:'2025-05-30', texto:'Subir LP Clínicas', cor:'ev-blue'},
+  {id:4, data:'2025-06-02', texto:'Análise GA4 primeira semana', cor:'ev-yellow'},
+];
+if(!S.eventos.length) { S.eventos = eventosIniciais; save('eventos', S.eventos); }
+
+function renderCalendario() {
+  const ano = S.calDate.getFullYear();
+  const mes = S.calDate.getMonth();
+  document.getElementById('cal-mes-label').textContent =
+    S.calDate.toLocaleDateString('pt-BR',{month:'long',year:'numeric'});
+
+  const grid = document.getElementById('cal-grid');
+  // Remove dias antigos
+  while(grid.children.length > 7) grid.removeChild(grid.lastChild);
+
+  const primeiro = new Date(ano, mes, 1);
+  const ultimo   = new Date(ano, mes+1, 0);
+  const startDow = primeiro.getDay();
+
+  // Dias do mês anterior
+  for(let i=0; i<startDow; i++) {
+    const d = new Date(ano, mes, -startDow+i+1);
+    grid.appendChild(criarDia(d, true));
+  }
+  // Dias do mês
+  for(let d=1; d<=ultimo.getDate(); d++) {
+    grid.appendChild(criarDia(new Date(ano, mes, d), false));
+  }
+  // Completar grid
+  const total = startDow + ultimo.getDate();
+  const remainder = total % 7;
+  if(remainder > 0) {
+    for(let i=1; i<=7-remainder; i++) {
+      grid.appendChild(criarDia(new Date(ano, mes+1, i), true));
+    }
+  }
+}
+
+function criarDia(date, outro) {
+  const div = document.createElement('div');
+  div.className = 'cal-day' + (outro?' other-month':'') +
+    (isSameDay(date,hoje)?' today':'');
+
+  const ds = fmtDate(date);
+  const evs = S.eventos.filter(e=>e.data===ds);
+
+  div.innerHTML = `<div class="day-num">${date.getDate()}</div>` +
+    evs.map(e=>`<div class="cal-event ${e.cor}" title="${e.texto}">${e.texto}</div>`).join('');
+
+  return div;
+}
+
+function isSameDay(a,b) { return a.getFullYear()===b.getFullYear()&&a.getMonth()===b.getMonth()&&a.getDate()===b.getDate(); }
+function fmtDate(d) { return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
+
+function calNav(dir) {
+  S.calDate = new Date(S.calDate.getFullYear(), S.calDate.getMonth()+dir, 1);
+  renderCalendario();
+}
+
+function adicionarEvento() {
+  const data  = document.getElementById('ev-data').value;
+  const texto = document.getElementById('ev-texto').value.trim();
+  const cor   = document.getElementById('ev-cor').value;
+  if(!data || !texto) return;
+  S.eventos.push({id:Date.now(), data, texto, cor});
+  save('eventos', S.eventos);
+  renderCalendario();
+  document.getElementById('ev-texto').value = '';
+}
+
+// ── NOTAS ───────────────────────────────────────────
+const notasIniciais = [
+  {id:1, lp:'reforma', texto:'LP Reforma Tributária publicada em msinaiconsultoria.com.br/reforma-tributaria', data:'29/05/2025', cor:'#ef4444'},
+  {id:2, lp:'geral',   texto:'GA4 G-VXRBNJY2LD instalado nas 3 LPs com rastreamento de cliques CTA', data:'29/05/2025', cor:'#f59e0b'},
+  {id:3, lp:'clinicas',texto:'LP Clínicas Médicas pronta — aguardando upload na Hostinger', data:'29/05/2025', cor:'#3b82f6'},
+  {id:4, lp:'spv',     texto:'LP SPV Afiliado criada — link afiliado Kiwify: afid=u0yUux6F', data:'29/05/2025', cor:'#10b981'},
+];
+if(!S.notas.length) { S.notas = notasIniciais; save('notas', S.notas); }
+
+function renderNotas() {
+  const emojis = {clinicas:'🏥',reforma:'⚖️',spv:'🚀',geral:'📌'};
+  const cores  = {clinicas:'#3b82f6',reforma:'#ef4444',spv:'#10b981',geral:'#f59e0b'};
+  document.getElementById('notes-list').innerHTML = S.notas.slice().reverse().map(n=>`
+    <div class="note-item">
+      <span class="note-dot" style="background:${n.cor}"></span>
+      <div class="note-body">
+        <div class="note-text">${emojis[n.lp]||'📌'} <strong>${n.lp.toUpperCase()}</strong> — ${n.texto}</div>
+        <div class="note-meta">${n.data}</div>
+      </div>
+      <button class="note-del" onclick="delNota(${n.id})">✕</button>
+    </div>
+  `).join('');
+}
+function addNota() {
+  const texto = document.getElementById('note-input').value.trim();
+  const lp    = document.getElementById('note-lp').value;
+  if(!texto) return;
+  const cores = {clinicas:'#3b82f6',reforma:'#ef4444',spv:'#10b981',geral:'#f59e0b'};
+  S.notas.push({id:Date.now(), lp, texto, data:hoje.toLocaleDateString('pt-BR'), cor:cores[lp]});
+  save('notas', S.notas);
+  renderNotas();
+  document.getElementById('note-input').value = '';
+}
+function delNota(id) { S.notas=S.notas.filter(n=>n.id!==id); save('notas',S.notas); renderNotas(); }
+
+// ── UTM ─────────────────────────────────────────────
+['utm-page','utm-source','utm-medium','utm-campaign'].forEach(id => {
+  const el = document.getElementById(id);
+  if(el) { el.addEventListener('input',gerarUTM); el.addEventListener('change',gerarUTM); }
+});
+function gerarUTM() {
+  const page = document.getElementById('utm-page').value;
+  const src  = document.getElementById('utm-source').value;
+  const med  = document.getElementById('utm-medium').value;
+  const camp = document.getElementById('utm-campaign').value || 'campanha';
+  if(!page) { document.getElementById('utm-url').textContent='← Selecione a página primeiro'; return; }
+  document.getElementById('utm-url').textContent = `${page}?utm_source=${src}&utm_medium=${med}&utm_campaign=${camp}`;
+}
+function copiarUTM() {
+  const url = document.getElementById('utm-url').textContent;
+  if(url.startsWith('←')) return;
+  navigator.clipboard.writeText(url).then(()=>{
+    const btn = document.getElementById('utm-copy-btn');
+    btn.textContent='✅ Copiado!'; btn.classList.add('copied');
+    setTimeout(()=>{ btn.textContent='📋 Copiar'; btn.classList.remove('copied'); },2000);
+  });
+}
+
+// ── MODAL NOVA LP ────────────────────────────────────
+function abrirModal() { document.getElementById('overlay').classList.add('open'); }
+function fecharModal() { document.getElementById('overlay').classList.remove('open'); }
+function fecharOverlay(e) { if(e.target===e.currentTarget) { e.currentTarget.classList.remove('open'); } }
+
+function salvarLP() {
+  const nome = document.getElementById('f-nome').value.trim();
+  if(!nome) { alert('Informe o nome da LP'); return; }
+  const obj = {
+    id: Date.now(), nome,
+    desc:   document.getElementById('f-desc').value.trim(),
+    cat:    document.getElementById('f-cat').value,
+    status: document.getElementById('f-status').value,
+    url:    document.getElementById('f-url').value.trim(),
+    meta:   document.getElementById('f-meta').value.trim(),
+    tags:   document.getElementById('f-tags').value.split(',').map(t=>t.trim()).filter(Boolean),
+  };
+  S.lps.push(obj);
+  save('lps', S.lps);
+  appendLPCard(obj);
+  fecharModal();
+  ['f-nome','f-desc','f-url','f-meta','f-tags'].forEach(i=>document.getElementById(i).value='');
+  atualizarSummary();
+}
+
+const catIco  = {contabil:'🏥',afiliado:'🚀',servico:'💼',outro:'📄'};
+const catCls  = {contabil:'ico-teal',afiliado:'ico-green',servico:'ico-blue',outro:'ico-blue'};
+const tagCols = ['t-blue','t-green','t-yellow','t-red','t-purple','t-cyan'];
+
+function appendLPCard(obj) {
+  const statusLabel = {online:'No Ar',dev:'Local',pausado:'Pausado'};
+  const tagsHTML = obj.tags.map((t,i)=>`<span class="tag ${tagCols[i%tagCols.length]}">${t}</span>`).join('');
+  const card = document.createElement('div');
+  card.className='lp-card'; card.dataset.status=obj.status;
+  card.innerHTML=`
+    <div class="lp-hdr">
+      <div class="lp-hdr-left">
+        <div class="lp-ico ${catCls[obj.cat]||'ico-blue'}">${catIco[obj.cat]||'📄'}</div>
+        <div><div class="lp-title">${obj.nome}</div><div class="lp-desc">${obj.desc||'Sem descrição'}</div></div>
+      </div>
+      <span class="badge ${obj.status}"><span class="badge-dot"></span>${statusLabel[obj.status]}</span>
+    </div>
+    <div class="lp-body">
+      <div class="lp-metrics">
+        <div class="metric"><span class="m-val">—</span><span class="m-lbl">Visitas</span></div>
+        <div class="metric"><span class="m-val">—</span><span class="m-lbl">Cliques</span></div>
+        <div class="metric"><span class="m-val">0</span><span class="m-lbl">Leads</span></div>
+      </div>
+      ${tagsHTML ? `<div class="lp-tags">${tagsHTML}</div>` : ''}
+      <div class="lp-actions">
+        ${obj.url ? `<a href="${obj.url}" target="_blank" class="lp-btn primary">👁 Ver</a>` : '<span class="lp-btn">📁 Sem URL</span>'}
+      </div>
+    </div>`;
+  document.getElementById('lp-grid').appendChild(card);
+  atualizarSummary();
+}
+
+function atualizarSummary() {
+  const cards = document.querySelectorAll('.lp-card');
+  document.getElementById('s-total').textContent  = cards.length;
+  document.getElementById('s-online').textContent = document.querySelectorAll('.lp-card[data-status="online"]').length;
+  document.getElementById('s-dev').textContent    = document.querySelectorAll('.lp-card[data-status="dev"]').length;
+  document.getElementById('lp-count').textContent = cards.length+' páginas cadastradas';
+}
+
+function abrirGA(page) {
+  window.open('https://analytics.google.com/analytics/web/#/p406559564/reports/intelligenthome','_blank');
+}
+
+// ── INIT ─────────────────────────────────────────────
+S.lps.forEach(appendLPCard);
+renderMetricas();
+renderTarefas();
+renderCalendario();
+renderNotas();
+atualizarSummary();
+</script>
+</body>
+</html>
